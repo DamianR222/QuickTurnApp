@@ -23,17 +23,17 @@ namespace Quick_Turn_App
         String connectionString = "Data Source = (LocalDB)\\MSSQLLocalDB; AttachDbFilename = 'C:\\Users\\IU Student\\Source\\Repos\\Quick_Turn_App\\Quick_Turn_App\\QuickTurn.mdf'; Integrated Security = True";
         string selectCommand = "SELECT * FROM " + employeesform.tblname + "";
 
-        //Methods
 
+        //Methods
         public void IR_Print(string ir)
         {
             //prints Inspection Report (.xlsx format)
 
             try
             {
-                string partNum = ir;
+                //string partNum = ir;
                 //string firstArticle = Directory.GetFiles("C:\\", partNum + ".xlsx").ToString(); //@"C:\Users\IU Student\Desktop\QuickTurn\Inpection Reports (1st Articles)\IR_" + partNum + ".xlsx";
-                string firstArticle = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\Inpection Reports(1st Articles)\\IR_" + partNum + ".xlsx";
+                string firstArticle = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\Inpection Reports(1st Articles)\\IR_" + /*partNum*/ ir + ".xlsx";
 
                 
                 if(firstArticle != null)
@@ -72,10 +72,6 @@ namespace Quick_Turn_App
             }
         }
 
-
-
-
-
         public void PP_Print(string pp)
         {
             //prints part print (.pdf format)
@@ -83,9 +79,9 @@ namespace Quick_Turn_App
             try
             {
 
-                string partNum = pp;
+                //string partNum = pp;
                 //string partPrint = @"C:\Users\IU Student\Desktop\QuickTurn\Prints\GARDNER DENVER PRINTS\" + partNum + ".pdf";
-                string partPrint = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\Prints\\GARDNER DENVER PRINTS\\" + partNum + ".pdf";
+                string partPrint = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\Prints\\GARDNER DENVER PRINTS\\" + /*partNum*/ pp + ".pdf";
 
 
                 using (PrintDialog Dialog = new PrintDialog())
@@ -119,6 +115,54 @@ namespace Quick_Turn_App
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        public void WO_Print(string wo, string orderNum, string dueDate, string qty)
+        {
+            string xlPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\Work Orders\\" + wo + ".xlsx";
+            string FNFMsg = "File Not Found!";
+            Microsoft.Office.Interop.Excel.Application xlApp;
+            Microsoft.Office.Interop.Excel._Workbook xlWorkbook;
+            Microsoft.Office.Interop.Excel._Worksheet xlWorksheet;
+            
+            xlApp = new Microsoft.Office.Interop.Excel.Application
+                {
+                    Visible = false,
+                    UserControl = false
+                };
+
+            xlWorkbook = xlApp.Workbooks.Open(xlPath);
+            if (File.Exists(xlPath))
+            {
+                try
+                {
+                    xlWorksheet = (Microsoft.Office.Interop.Excel._Worksheet)xlWorkbook.ActiveSheet;
+
+                    xlWorksheet.Cells[2, 12] = qty;
+                    xlWorksheet.Cells[2, 14] = dueDate;
+                    xlWorksheet.Cells[2, 3] = orderNum;
+
+                    xlApp.DisplayAlerts = false;
+                    xlWorkbook.SaveAs(xlPath, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookDefault, Type.Missing, Type.Missing, false, false, XlSaveAsAccessMode.xlNoChange, XlSaveConflictResolution.xlLocalSessionChanges, Type.Missing, Type.Missing);
+                    xlWorkbook.PrintOutEx(null, null, null, true);
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(FNFMsg + " " + ex + " : " + ex.Message);
+                }
+                finally
+                {
+                    xlWorkbook.Close();
+                    xlApp.Quit();
+                }
+
+            }
+            else
+            {
+                MessageBox.Show(FNFMsg);
+            }
+            
         }
 
         private void dataGridView6_CellValueChanged(object sender, DataGridViewCellEventArgs l)
@@ -170,57 +214,17 @@ namespace Quick_Turn_App
             textBox3.Clear();
             textBox4.Clear();
             
-
             string OrderNum = textBox2.Text;
             string Quantity = textBox3.Text;
-            string dueDate = textBox4.Text;
-            string partNum = comboBox1.Text;
-            string xlPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)+"\\Work Orders\\" + partNum + ".xlsx";
-            string FNFMsg = "File Not Found!";
+            string DueDate = textBox4.Text;
+            string PartNum = comboBox1.Text;
+
+            WO_Print(PartNum, OrderNum, DueDate, PartNum);
+            IR_Print(PartNum);
+            PP_Print(PartNum);
 
 
-            if (File.Exists(xlPath))
-            {
-                try
-                {
-                    Microsoft.Office.Interop.Excel.Application xlApp;
-                    Microsoft.Office.Interop.Excel._Workbook xlWorkbook;
-                    Microsoft.Office.Interop.Excel._Worksheet xlWorksheet;
-                    xlApp = new Microsoft.Office.Interop.Excel.Application
-                    {
-                        Visible = false,
-                        UserControl = false
-                    };
-
-                    xlWorkbook = xlApp.Workbooks.Open(xlPath);
-
-
-                    xlWorksheet = (Microsoft.Office.Interop.Excel._Worksheet)xlWorkbook.ActiveSheet;
-
-                    xlWorksheet.Cells[2, 12] = Quantity;
-                    xlWorksheet.Cells[2, 14] = dueDate;
-                    xlWorksheet.Cells[2, 3] = OrderNum;
-
-                    xlApp.DisplayAlerts = false;
-                    xlWorkbook.SaveAs(xlPath, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookDefault, Type.Missing, Type.Missing, false, false, XlSaveAsAccessMode.xlNoChange, XlSaveConflictResolution.xlLocalSessionChanges, Type.Missing, Type.Missing);
-                    xlWorkbook.PrintOutEx(null, null, null, true);
-                    IR_Print(partNum);
-                    PP_Print(partNum);
-                    xlWorkbook.Close();
-                    xlApp.Quit();
-
-
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(FNFMsg + " " + ex + " : " + ex.Message);
-                }
-
-            }
-            else
-            {
-                MessageBox.Show(FNFMsg);
-            }
+            
 
             /*
              * Work Order Excel Values
@@ -249,8 +253,6 @@ namespace Quick_Turn_App
 
         }
 
-
-
         private void Form1_Load(object sender, EventArgs e)
         {
             // TODO: This line of code loads data into the 'quickTurnDataSet.part_files' table. You can move, or remove it, as needed.
@@ -266,10 +268,8 @@ namespace Quick_Turn_App
 
         }
 
-
-
         //Employees
-        private void addEmployeeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AddEmployee_MenuItem1_Click(object sender, EventArgs e)
         {
             employeesform popup = new employeesform();
             var result = popup.ShowDialog();
@@ -302,8 +302,7 @@ namespace Quick_Turn_App
 
         }
 
-
-        private void deleteEmployeeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void DeleteEmployee_MenuItem2_Click(object sender, EventArgs e)
         {
             //String connectionString = "Data Source = (LocalDB)\\MSSQLLocalDB; AttachDbFilename = 'C:\\Users\\IU Student\\Source\\Repos\\Quick_Turn_App\\Quick_Turn_App\\QuickTurn.mdf'; Integrated Security = True";
 
@@ -334,10 +333,8 @@ namespace Quick_Turn_App
 
         }
 
-        
-
         //Part Files
-        private void addPartToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AddPart_MenuItem1_Click(object sender, EventArgs e)
         {
             partfilesform popup = new partfilesform();
 
@@ -345,7 +342,11 @@ namespace Quick_Turn_App
             if (popup.DialogResult == DialogResult.OK)
             {
                 //--------------< add_Entry_to_Database() >-------------
-                quickTurnDataSet.part_files.Rows.Add(partfilesform.partnum, partfilesform.printfile, partfilesform.program, partfilesform.inspectionreport);
+                quickTurnDataSet.part_files.Rows.Add(partfilesform.partnum,
+                    partfilesform.printfile,
+                    partfilesform.program,
+                    partfilesform.inspectionreport);
+
                 partfilesBindingSource.EndEdit();
                 this.Validate();
                 MessageBox.Show("OK");
@@ -359,7 +360,7 @@ namespace Quick_Turn_App
 
         }
 
-        private void deletePartToolStripMenuItem_Click(object sender, EventArgs e)
+        private void DeletePart_MenuItem2_Click(object sender, EventArgs e)
         {
             //String connectionString = "Data Source = (LocalDB)\\MSSQLLocalDB; AttachDbFilename = 'C:\\Users\\IU Student\\Source\\Repos\\Quick_Turn_App\\Quick_Turn_App\\QuickTurn.mdf'; Integrated Security = True";
 
@@ -390,7 +391,7 @@ namespace Quick_Turn_App
         }
 
         //Inventory
-        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        private void AddInventoryItem_MenuItem1_Click(object sender, EventArgs e)
         {
             inventoryform popup = new inventoryform();
             var result = popup.ShowDialog();
@@ -416,7 +417,7 @@ namespace Quick_Turn_App
 
         }
 
-        private void removeItemToolStripMenuItem_Click(object sender, EventArgs e)
+        private void RemoveInventoryItem_MenuItem2_Click(object sender, EventArgs e)
         {
             if (dataGridView4.SelectedRows.Count == 0)
             {
@@ -453,10 +454,8 @@ namespace Quick_Turn_App
 
         }
 
-        
-
         //Bar Stock Prices
-        private void pricesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AddPricesItem_MenuItem1_Click(object sender, EventArgs e)
         {
             barstockpricesform popup = new barstockpricesform();
             if (popup.DialogResult == DialogResult.OK)
@@ -485,7 +484,7 @@ namespace Quick_Turn_App
             
         }
 
-        private void deleteItemToolStripMenuItem_Click(object sender, EventArgs e)
+        private void DeletePricesItem_MenuItem2_Click(object sender, EventArgs e)
         {
             string table3 = "bar_stock_prices";
             if (dataGridView3.SelectedRows.Count == 0)
@@ -513,7 +512,7 @@ namespace Quick_Turn_App
 
         }
 
-        private void editItemToolStripMenuItem_Click(object sender, EventArgs e)
+        private void EditPricesItem_MenuItem3_Click(object sender, EventArgs e)
         {
             barstockpricesform popup = new barstockpricesform();
             popup.Show();

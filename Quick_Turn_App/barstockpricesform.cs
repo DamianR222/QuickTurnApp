@@ -47,7 +47,7 @@ namespace Quick_Turn_App
 
         private void button2_Click(object sender, EventArgs e)
         {
-            string tblname = "bar_stock_prices";
+            
             bardiameter = barStockDiameterTextBox.Text;
             pricepaid = pricePaidTextBox.Text;
             prevprice = prevPricePaidTextBox.Text;
